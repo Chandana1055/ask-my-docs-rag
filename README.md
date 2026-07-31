@@ -1,2 +1,7 @@
-# ask-my-docs-rag
-AI-powered document assistant built with RAG, FAISS, Sentence Transformers, Streamlit, and Groq. Upload PDF documents and ask questions to get accurate, context-aware answers based on the uploaded content.
+# Ask-My-Docs
+
+AI-powered PDF Document Assistant using RAG, FAISS, Sentence Transformers, Streamlit, and Groq.
+
+## Live Demo
+
+[Open Ask-My-Docs](https://ask-my-docs-rag-xkhcqu9k7twyxnmgjwsfun.streamlit.app/)
