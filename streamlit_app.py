@@ -1,4 +1,3 @@
-
 import os
 import re
 import fitz
@@ -34,9 +33,7 @@ if not api_key:
     st.error("GROQ_API_KEY is not configured.")
     st.stop()
 
-client = Groq(
-    api_key=api_key
-)
+client = Groq(api_key=api_key)
 
 
 # =========================================================
@@ -46,7 +43,6 @@ client = Groq(
 st.markdown(
     """
     <style>
-
     .main-title {
         font-size: 42px;
         font-weight: 700;
@@ -58,7 +54,6 @@ st.markdown(
         opacity: 0.75;
         margin-bottom: 25px;
     }
-
     </style>
     """,
     unsafe_allow_html=True
@@ -113,23 +108,16 @@ with st.sidebar:
         )
 
         for file in uploaded_files:
-
-            st.write(
-                f"📄 {file.name}"
-            )
+            st.write(f"📄 {file.name}")
 
     else:
-
         st.info(
             "Upload one or more PDFs to begin."
         )
 
     st.divider()
 
-    # =====================================================
     # CLEAR CHAT
-    # =====================================================
-
     if st.button(
         "Clear Chat",
         use_container_width=True
@@ -139,10 +127,7 @@ with st.sidebar:
 
         st.rerun()
 
-    # =====================================================
     # DOWNLOAD CHAT HISTORY
-    # =====================================================
-
     if st.session_state.messages:
 
         chat_text = ""
@@ -208,10 +193,7 @@ def process_documents(uploaded_files):
             if not text.strip():
                 continue
 
-            # =================================================
             # CHUNKING
-            # =================================================
-
             chunk_size = 300
             overlap = 50
 
@@ -244,10 +226,7 @@ def process_documents(uploaded_files):
 
         return [], [], None
 
-    # =====================================================
     # CREATE EMBEDDINGS
-    # =====================================================
-
     embeddings = model.encode(
         all_chunks
     )
@@ -256,10 +235,7 @@ def process_documents(uploaded_files):
         embeddings
     ).astype("float32")
 
-    # =====================================================
     # CREATE FAISS INDEX
-    # =====================================================
-
     index = faiss.IndexFlatL2(
         embedding_array.shape[1]
     )
@@ -389,10 +365,12 @@ if uploaded_files:
 
 
     # =====================================================
-    # MAIN ANALYTICS DASHBOARD
+    # DOCUMENT OVERVIEW
     # =====================================================
 
-    st.subheader("Document Overview")
+    st.subheader(
+        "Document Overview"
+    )
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -460,7 +438,6 @@ if uploaded_files:
             document_text.split()
         )
 
-        # Count chunks belonging to this document
         document_chunk_count = sum(
             1
             for source in sources
@@ -479,10 +456,6 @@ if uploaded_files:
         )
 
 
-    # =====================================================
-    # DISPLAY DOCUMENT TABLE
-    # =====================================================
-
     st.dataframe(
         document_stats,
         use_container_width=True,
@@ -491,7 +464,7 @@ if uploaded_files:
 
 
     # =====================================================
-    # DOCUMENT COMPARISON CHART
+    # DOCUMENT COMPARISON
     # =====================================================
 
     st.subheader(
@@ -701,103 +674,114 @@ CONTENT:
                 "Searching documents..."
             ):
 
-                response = client.chat.completions.create(
+                try:
 
-                    model="llama-3.3-70b-versatile",
+                    response = client.chat.completions.create(
 
-                    messages=[
+                        # AVAILABLE MODEL FROM YOUR GROQ ACCOUNT
+                        model="openai/gpt-oss-120b",
 
-                        {
-                            "role": "system",
+                        messages=[
 
-                            "content":
-                            """
-                            You are an AI document assistant.
+                            {
+                                "role": "system",
 
-                            Answer ONLY using the provided
-                            document context.
+                                "content":
+                                """
+                                You are an AI document assistant.
 
-                            Carefully search ALL provided
-                            context before answering.
+                                Answer ONLY using the provided
+                                document context.
 
-                            Look for:
+                                Carefully search ALL provided
+                                context before answering.
 
-                            - Certificate names
-                            - Certificate IDs
-                            - Credential IDs
-                            - Registration numbers
-                            - Course names
-                            - Dates
-                            - Names
-                            - Organizations
-                            - Skills
-                            - Technologies
-                            - Project names
-                            - Education details
-                            - Work experience
+                                Look for:
 
-                            For ID questions:
+                                - Certificate names
+                                - Certificate IDs
+                                - Credential IDs
+                                - Registration numbers
+                                - Course names
+                                - Dates
+                                - Names
+                                - Organizations
+                                - Skills
+                                - Technologies
+                                - Project names
+                                - Education details
+                                - Work experience
 
-                            Return the EXACT ID from
-                            the document.
+                                For ID questions:
 
-                            Never modify, change, or invent
-                            an ID.
+                                Return the EXACT ID from
+                                the document.
 
-                            Always mention:
+                                Never modify, change, or invent
+                                an ID.
 
-                            1. The answer
-                            2. Document name
-                            3. Page number
+                                Always mention:
 
-                            If multiple documents contain
-                            relevant information, mention
-                            all relevant documents.
+                                1. The answer
+                                2. Document name
+                                3. Page number
 
-                            Do not guess.
+                                If multiple documents contain
+                                relevant information, mention
+                                all relevant documents.
 
-                            If the information is not present,
-                            say:
+                                Do not guess.
 
-                            "I couldn't find that information
-                            in the uploaded documents."
-                            """
-                        },
+                                If the information is not present,
+                                say:
 
-                        {
-                            "role": "user",
+                                "I couldn't find that information
+                                in the uploaded documents."
+                                """
+                            },
 
-                            "content":
-                            f"""
-                            DOCUMENT CONTEXT:
+                            {
+                                "role": "user",
 
-                            {context}
+                                "content":
+                                f"""
+                                DOCUMENT CONTEXT:
 
-                            QUESTION:
+                                {context}
 
-                            {question}
+                                QUESTION:
 
-                            IMPORTANT:
+                                {question}
 
-                            Search every SOURCE and CONTENT
-                            section before answering.
+                                IMPORTANT:
 
-                            Return exact information from
-                            the documents.
+                                Search every SOURCE and CONTENT
+                                section before answering.
 
-                            Do not guess.
-                            """
-                        }
+                                Return exact information from
+                                the documents.
 
-                    ]
-                )
+                                Do not guess.
+                                """
+                            }
 
-                answer = (
-                    response
-                    .choices[0]
-                    .message
-                    .content
-                )
+                        ]
+                    )
+
+                    answer = (
+                        response
+                        .choices[0]
+                        .message
+                        .content
+                    )
+
+                except Exception as e:
+
+                    answer = (
+                        "Sorry, I couldn't generate an answer "
+                        "from Groq right now.\n\n"
+                        f"Error: {str(e)}"
+                    )
 
             st.markdown(
                 answer
@@ -885,4 +869,3 @@ else:
         as a text file.
         """
     )
-
